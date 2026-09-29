@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bunny English Lab</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#f8f2ff,#eaf9ff);color:#29263d}
+.app{max-width:760px;margin:auto;padding:18px}.brand{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.logo{width:62px;height:62px;border-radius:20px;background:#fff;display:grid;place-items:center;font-size:38px;box-shadow:0 10px 30px #0001}
+h1{margin:0;font-size:25px}.tag{color:#777;margin-top:4px}.card{background:#fffffff2;border-radius:28px;padding:22px;box-shadow:0 15px 45px #35245b18}
+.menu{display:grid;gap:13px}.game-card{border:0;border-radius:20px;padding:18px;text-align:left;background:#f5f2ff;cursor:pointer;display:flex;gap:15px;align-items:center}
+.game-card:hover{transform:translateY(-2px)}.game-icon{font-size:38px}.game-card h3{margin:0 0 5px;font-size:19px}.game-card p{margin:0;color:#777}
+.top{display:flex;justify-content:space-between;gap:8px;margin-bottom:15px}.pill{background:#f0edff;padding:8px 12px;border-radius:99px;font-weight:700;font-size:14px}
+.progress{height:9px;background:#eee;border-radius:10px;overflow:hidden;margin-bottom:22px}.bar{height:100%;width:10%;background:#7657e8;border-radius:10px}
+.bunny{font-size:74px;text-align:center;animation:bob 2s infinite}@keyframes bob{50%{transform:translateY(-6px)}}
+.question{text-align:center}.picture{font-size:85px;margin:12px}.question h2{font-size:25px}.choices{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+button{border:0;border-radius:17px;padding:15px;font-size:17px;font-weight:700;cursor:pointer;background:#f3f1ff;color:#30285a}button:hover{transform:translateY(-2px)}
+.choice.correct{background:#d9f8df}.choice.wrong{background:#ffdede}.feedback{text-align:center;min-height:30px;font-weight:700;margin:14px}
+.primary{width:100%;background:#7657e8;color:#fff;margin-top:8px}.back{background:#eee;color:#444;margin-bottom:12px}.hidden{display:none}
+.result{text-align:center}.result .emoji{font-size:70px}.result h2{font-size:29px}
+.words{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;margin:18px 0}.word{background:#eee7ff;padding:11px 14px;border-radius:13px;cursor:pointer}.word.used{opacity:.35}
+.sentence{min-height:65px;border:2px dashed #bbb;border-radius:17px;padding:12px;margin:12px 0;display:flex;flex-wrap:wrap;gap:7px;align-content:flex-start}.selected{background:#dfeaff!important}
+@media(max-width:500px){.choices{grid-template-columns:1fr}.app{padding:12px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="brand"><div class="logo">🐰</div><div><h1>Bunny English Lab</h1><div class="tag">Learn English. Play. Level Up!</div></div></div>
+
+  <div class="card" id="home">
+    <div class="bunny">🐰</div>
+    <h2 style="text-align:center">Welcome to Bunny English Lab!</h2>
+    <p style="text-align:center;color:#666">Choose a game and start practicing English.</p>
+    <div class="menu">
+      <button class="game-card" onclick="openGame('words')"><span class="game-icon">🍎</span><span><h3>Word Hunt</h3><p>Choose the correct English word.</p></span></button>
+      <button class="game-card" onclick="openGame('grammar')"><span class="game-icon">🎯</span><span><h3>Grammar Challenge</h3><p>Choose the correct sentence.</p></span></button>
+      <button class="game-card" onclick="openGame('builder')"><span class="game-icon">🧩</span><span><h3>Sentence Builder</h3><p>Put the words in the right order.</p></span></button>
+    </div>
+  </div>
+
+  <div class="card hidden" id="game">
+    <button class="back" onclick="goHome()">← Games</button>
+    <div id="gameContent"></div>
+  </div>
+</div>
+
+<script>
+const data={
+ words:[
+  ["🍎","apple",["apple","orange","banana","carrot"]],["🐱","cat",["dog","cat","bird","fish"]],
+  ["☀️","sun",["moon","rain","sun","star"]],["📚","book",["pen","book","chair","bag"]],
+  ["🍌","banana",["apple","banana","grape","lemon"]],["🐶","dog",["rabbit","dog","horse","cat"]],
+  ["🏠","house",["school","house","park","shop"]],["🚗","car",["bus","bike","car","train"]],
+  ["🌳","tree",["flower","tree","grass","leaf"]],["🍦","ice cream",["cake","ice cream","bread","cheese"]]
+ ],
+ grammar:[
+  ["She ___ to school every day.","go","goes",["go","goes","going","gone"]],
+  ["I ___ coffee every morning.","drink","drink",["drink","drinks","drinking","drank"]],
+  ["They ___ playing football now.","are","are",["is","are","am","be"]],
+  ["He ___ TV yesterday.","watched","watched",["watch","watches","watched","watching"]],
+  ["We ___ visit grandma tomorrow.","will","will",["did","were","will","are"]]
+ ],
+ builder:[
+  ["I","love","English"],["She","goes","to","school"],["They","are","happy"],["Bunny","can","speak","English"],["I","am","learning","English"]
+ ]
+};
+let mode="",index=0,score=0,locked=false,chosen=[];
+
+function openGame(m){mode=m;index=0;score=0;document.getElementById("home").classList.add("hidden");document.getElementById("game").classList.remove("hidden");render()}
+function goHome(){document.getElementById("game").classList.add("hidden");document.getElementById("home").classList.remove("hidden")}
+function render(){if(mode==="words")renderWords();else if(mode==="grammar")renderGrammar();else renderBuilder()}
+function header(total){return `<div class="top"><span class="pill">Question ${index+1}/${total}</span><span class="pill">⭐ ${score}</span></div><div class="progress"><div class="bar" style="width:${(index+1)/total*100}%"></div></div>`}
+function renderWords(){
+ let q=data.words[index];locked=false;
+ document.getElementById("gameContent").innerHTML=header(data.words.length)+`<div class="question"><div class="bunny">🐰</div><div class="picture">${q[0]}</div><h2>What is this?</h2><div class="choices">${shuffle(q[2]).map(x=>`<button class="choice" onclick="answerWord(this,'${x}')">${x}</button>`).join("")}</div><div class="feedback" id="fb"></div><button class="primary" id="next" disabled onclick="next()">Next ➜</button></div>`
+}
+function answerWord(btn,x){if(locked)return;locked=true;let q=data.words[index];document.querySelectorAll(".choice").forEach(b=>b.disabled=true);if(x===q[1]){score+=10;btn.classList.add("correct");fb.textContent="🎉 Correct! +10 points";speak("Correct!")}else{btn.classList.add("wrong");document.querySelectorAll(".choice").forEach(b=>{if(b.textContent===q[1])b.classList.add("correct")});fb.textContent=`💡 The answer is "${q[1]}".`;speak(q[1])}document.getElementById("next").disabled=false;document.querySelector(".top .pill:last-child").innerHTML="⭐ "+score}
+function renderGrammar(){
+ let q=data.grammar[index];locked=false;
+ document.getElementById("gameContent").innerHTML=header(data.grammar.length)+`<div class="question"><div class="bunny">🐰</div><h2>${q[0]}</h2><div class="choices">${shuffle(q[3]).map(x=>`<button class="choice" onclick="answerGrammar(this,'${x}','${q[1]}')">${x}</button>`).join("")}</div><div class="feedback" id="fb"></div><button class="primary" id="next" disabled onclick="next()">Next ➜</button></div>`
+}
+function answerGrammar(btn,x,a){if(locked)return;locked=true;document.querySelectorAll(".choice").forEach(b=>b.disabled=true);if(x===a){score+=10;btn.classList.add("correct");fb.textContent="🌟 Excellent! +10 points"}else{btn.classList.add("wrong");document.querySelectorAll(".choice").forEach(b=>{if(b.textContent===a)b.classList.add("correct")});fb.textContent=`💡 Correct answer: ${a}`}document.getElementById("next").disabled=false;document.querySelector(".top .pill:last-child").innerHTML="⭐ "+score}
+function renderBuilder(){
+ let words=shuffle([...data.builder[index]]);chosen=[];
+ document.getElementById("gameContent").innerHTML=header(data.builder.length)+`<div class="question"><div class="bunny">🐰</div><h2>Build the correct sentence!</h2><div class="sentence" id="sentence"></div><div class="words" id="words">${words.map((w,i)=>`<span class="word" id="w${i}" onclick="pick(${i})">${w}</span>`).join("")}</div><div class="feedback" id="fb"></div><button class="primary" id="check" onclick="checkSentence()">Check sentence ✓</button>`
+ window.builderWords=words
+}
+function pick(i){let el=document.getElementById("w"+i);if(el.classList.contains("used"))return;el.classList.add("used");chosen.push(builderWords[i]);document.getElementById("sentence").innerHTML=chosen.map(w=>`<span class="word selected">${w}</span>`).join("")}
+function checkSentence(){if(chosen.length!==builderWords.length){fb.textContent="Choose all the words first!";return}let answer=data.builder[index].join(" ");if(chosen.join(" ")===answer){score+=10;fb.textContent="🎉 Perfect sentence! +10 points";document.getElementById("check").textContent="Next ➜";document.getElementById("check").onclick=next}else{fb.textContent=`💡 Try again. Correct: "${answer}"`;document.getElementById("check").textContent="Try again";document.getElementById("check").onclick=renderBuilder}}
+function next(){index++;let total=mode==="words"?data.words.length:mode==="grammar"?data.grammar.length:data.builder.length;if(index>=total){showResult()}else render()}
+function showResult(){let total=mode==="words"?data.words.length:mode==="grammar"?data.grammar.length:data.builder.length;document.getElementById("gameContent").innerHTML=`<div class="result"><div class="emoji">🏆</div><h2>Great work!</h2><p>You scored <b>${score}</b> points.</p><p>${score===total*10?"Perfect score! Bunny is impressed! 🐰":"Keep practicing and beat your score next time!"}</p><button class="primary" onclick="openGame('${mode}')">Play Again 🔄</button><button style="width:100%;margin-top:8px" onclick="goHome()">Choose Another Game</button></div>`}
+function shuffle(a){return a.sort(()=>Math.random()-.5)}
+function speak(t){if("speechSynthesis"in window){speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang="en-US";u.rate=.9;speechSynthesis.speak(u)}}
+</script>
+</body>
+</html>
